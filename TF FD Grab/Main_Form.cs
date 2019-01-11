@@ -166,8 +166,8 @@ namespace TF_FD_Grab
                 SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
 
-            Properties.Settings.Default.______last_bill_no = "";
-            Properties.Settings.Default.Save();
+            //Properties.Settings.Default.______last_bill_no = "";
+            //Properties.Settings.Default.Save();
         }
         private void panel2_MouseDown(object sender, MouseEventArgs e)
         {
@@ -214,7 +214,7 @@ namespace TF_FD_Grab
         // Click Close
         private void pictureBox_close_Click(object sender, EventArgs e)
         {
-            DialogResult dr = MessageBox.Show("Exit the program?", "FY FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dr = MessageBox.Show("Exit the program?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
                 __isClose = true;
@@ -233,7 +233,7 @@ namespace TF_FD_Grab
         {
             if (!__isClose)
             {
-                DialogResult dr = MessageBox.Show("Exit the program?", "FY FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                DialogResult dr = MessageBox.Show("Exit the program?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (dr == DialogResult.No)
                 {
                     e.Cancel = true;
@@ -251,6 +251,30 @@ namespace TF_FD_Grab
         private void Main_Form_Load(object sender, EventArgs e)
         {
             webBrowser.Navigate("http://cs.tianfa86.org/account/login");
+            
+            if (Properties.Settings.Default.______last_bill_no == "")
+            {
+                textBox_bill_no.Visible = true;
+                ((Control)webBrowser).Enabled = false;
+            }
+        }
+
+        private void textBox_bill_no_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (!String.IsNullOrEmpty(textBox_bill_no.Text.Trim()))
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    DialogResult dr = MessageBox.Show("Proceed?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (dr == DialogResult.Yes)
+                    {
+                        Properties.Settings.Default.______last_bill_no = textBox_bill_no.Text.Trim();
+                        Properties.Settings.Default.Save();
+                        textBox_bill_no.Visible = false;
+                        ((Control)webBrowser).Enabled = true;
+                    }
+                }
+            }
         }
 
         static int LineNumber([System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
@@ -334,12 +358,6 @@ namespace TF_FD_Grab
 
         private void ___PlayerLastBillNo()
         {
-            if (Properties.Settings.Default.______last_bill_no == "")
-            {
-                Properties.Settings.Default.______last_bill_no = "555147003831934976";
-                Properties.Settings.Default.Save();
-            }
-
             label_player_last_bill_no.Text = "Last Bill No.: " + Properties.Settings.Default.______last_bill_no;
         }
 
@@ -617,7 +635,7 @@ namespace TF_FD_Grab
                                 }
 
                                 // ----- Insert Data
-                                using (StreamWriter file = new StreamWriter(Path.GetTempPath() + @"\fdgrab_fy.txt", true, Encoding.UTF8))
+                                using (StreamWriter file = new StreamWriter(Path.GetTempPath() + @"\fdgrab_tf.txt", true, Encoding.UTF8))
                                 {
                                     file.WriteLine(_username + "*|*" + _name + "*|*" + _contact_no + "*|*" + _date_deposit + "*|*" + _vip + "*|*" + _amount + "*|*" + _gateway + "*|*" + _status + "*|*" + _bill_no + "*|*" + _process_datetime + "*|*" + _method);
                                     file.Close();
@@ -661,7 +679,7 @@ namespace TF_FD_Grab
             try
             {
                 double amount_replace = Convert.ToDouble(amount);
-                string password = __brand_code + username + date_deposit + "youdieidie";
+                string password = __brand_code + username.ToLower() + date_deposit + "youdieidie";
                 byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
                 byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
                 string token = BitConverter.ToString(hash)
@@ -718,7 +736,7 @@ namespace TF_FD_Grab
             try
             {
                 double amount_replace = Convert.ToDouble(amount);
-                string password = __brand_code + username + date_deposit + "youdieidie";
+                string password = __brand_code + username.ToLower() + date_deposit + "youdieidie";
                 byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
                 byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
                 string token = BitConverter.ToString(hash)

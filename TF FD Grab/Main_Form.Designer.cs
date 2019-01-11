@@ -47,6 +47,7 @@
             this.panel_landing = new System.Windows.Forms.Panel();
             this.pictureBox_landing = new System.Windows.Forms.PictureBox();
             this.timer = new System.Windows.Forms.Timer(this.components);
+            this.textBox_bill_no = new System.Windows.Forms.TextBox();
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_header)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
@@ -59,6 +60,7 @@
             // panel_header
             // 
             this.panel_header.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(90)))), ((int)(((byte)(101)))));
+            this.panel_header.Controls.Add(this.textBox_bill_no);
             this.panel_header.Controls.Add(this.pictureBox_header);
             this.panel_header.Controls.Add(this.panel1);
             this.panel_header.Controls.Add(this.label_title);
@@ -245,6 +247,15 @@
             this.timer.Interval = 15000;
             this.timer.Tick += new System.EventHandler(this.timer_TickAsync);
             // 
+            // textBox_bill_no
+            // 
+            this.textBox_bill_no.Location = new System.Drawing.Point(162, 13);
+            this.textBox_bill_no.Name = "textBox_bill_no";
+            this.textBox_bill_no.Size = new System.Drawing.Size(139, 20);
+            this.textBox_bill_no.TabIndex = 4;
+            this.textBox_bill_no.Visible = false;
+            this.textBox_bill_no.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox_bill_no_KeyDown);
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -267,7 +278,7 @@
             this.MinimumSize = new System.Drawing.Size(466, 168);
             this.Name = "Main_Form";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "FY FD Grab";
+            this.Text = "TF FD Grab";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_Form_FormClosing);
             this.Load += new System.EventHandler(this.Main_Form_Load);
             this.panel_header.ResumeLayout(false);
@@ -301,5 +312,6 @@
         private System.Windows.Forms.Panel panel_landing;
         private System.Windows.Forms.PictureBox pictureBox_landing;
         private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.TextBox textBox_bill_no;
     }
 }
