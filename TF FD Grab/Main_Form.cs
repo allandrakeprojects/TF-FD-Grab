@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -24,6 +25,7 @@ namespace TF_FD_Grab
         private bool __isLogin = false;
         private bool __isClose;
         private bool __isBreak = false;
+        private bool __autoReject = false;
         private int __secho;
         private int __display_length = 5000;
         private int __total_page;
@@ -31,10 +33,12 @@ namespace TF_FD_Grab
         private int __send = 0;
         private string __brand_code = "TF";
         private string __brand_color = "#9A0000";
+        private string __app = "FD Grab";
         private string __player_last_bill_no = "";
         private string __player_id = "";
         private string __playerlist_cn = "";
         private string __last_username = "";
+        private string __bill_no = "";
         Form __mainFormHandler;
 
         // Drag Header to Move
@@ -251,30 +255,6 @@ namespace TF_FD_Grab
         private void Main_Form_Load(object sender, EventArgs e)
         {
             webBrowser.Navigate("http://cs.tianfa86.org/account/login");
-            
-            if (Properties.Settings.Default.______last_bill_no == "")
-            {
-                textBox_bill_no.Visible = true;
-                ((Control)webBrowser).Enabled = false;
-            }
-        }
-
-        private void textBox_bill_no_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (!String.IsNullOrEmpty(textBox_bill_no.Text.Trim()))
-            {
-                if (e.KeyCode == Keys.Enter)
-                {
-                    DialogResult dr = MessageBox.Show("Proceed?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    if (dr == DialogResult.Yes)
-                    {
-                        Properties.Settings.Default.______last_bill_no = textBox_bill_no.Text.Trim();
-                        Properties.Settings.Default.Save();
-                        textBox_bill_no.Visible = false;
-                        ((Control)webBrowser).Enabled = true;
-                    }
-                }
-            }
         }
 
         static int LineNumber([System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
@@ -305,7 +285,7 @@ namespace TF_FD_Grab
 
                                 string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                                 SendITSupport("The application have been logout, please re-login again.");
-                                SendEmail("<html><body>Brand: <font color='" + __brand_color + "'>-----" + __brand_code + "-----</font><br/>IP: 192.168.10.252<br/>Location: Robinsons Summit Office<br/>Date and Time: [" + datetime + "]<br/>Line Number: " + LineNumber() + "<br/>Message: <b>The application have been logout, please re-login again.</b></body></html>");
+                                SendMyBot("The application have been logout, please re-login again.");
                                 __send = 0;
                             }
 
@@ -338,13 +318,20 @@ namespace TF_FD_Grab
                                 label_player_last_bill_no.Visible = true;
                                 webBrowser.WebBrowserShortcutsEnabled = false;
                                 ___PlayerLastBillNo();
+                                await ___GetListDepositVerify();
                                 await ___GetPlayerListsRequest();
                             }
                         }
                     }
                     catch (Exception err)
                     {
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        __send = 0;
 
+                        __isClose = false;
+                        Environment.Exit(0);
                     }
                 }
             }
@@ -358,7 +345,116 @@ namespace TF_FD_Grab
 
         private void ___PlayerLastBillNo()
         {
+            if (Properties.Settings.Default.______last_bill_no == "")
+            {
+                ___GetLastBillNo();
+            }
+
             label_player_last_bill_no.Text = "Last Bill No.: " + Properties.Settings.Default.______last_bill_no;
+        }
+
+        private void ___GetLastBillNo()
+        {
+            try
+            {
+                string password = __brand_code.ToString() + "youdieidie";
+                byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
+                byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
+                string token = BitConverter.ToString(hash)
+                   .Replace("-", string.Empty)
+                   .ToLower();
+
+                using (var wb = new WebClient())
+                {
+                    var data = new NameValueCollection
+                    {
+                        ["brand_code"] = __brand_code,
+                        ["token"] = token
+                    };
+
+                    var result = wb.UploadValues("http://zeus.ssimakati.com:8080/API/lastFDRecord", "POST", data);
+                    string responsebody = Encoding.UTF8.GetString(result);
+                    var deserializeObject = JsonConvert.DeserializeObject(responsebody);
+                    JObject jo = JObject.Parse(deserializeObject.ToString());
+                    JToken lbn = jo.SelectToken("$.msg");
+
+                    Properties.Settings.Default.______last_bill_no = lbn.ToString();
+                    Properties.Settings.Default.Save();
+                }
+            }
+            catch (Exception err)
+            {
+                if (__isLogin)
+                {
+                    __send++;
+                    if (__send == 5)
+                    {
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        __send = 0;
+
+                        __isClose = false;
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___GetLastBillNo2();
+                    }
+                }
+            }
+        }
+
+        private void ___GetLastBillNo2()
+        {
+            try
+            {
+                string password = __brand_code + "youdieidie";
+                byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
+                byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
+                string token = BitConverter.ToString(hash)
+                   .Replace("-", string.Empty)
+                   .ToLower();
+
+                using (var wb = new WebClient())
+                {
+                    var data = new NameValueCollection
+                    {
+                        ["brand_code"] = __brand_code,
+                        ["token"] = token
+                    };
+
+                    var result = wb.UploadValues("http://zeus2.ssitex.com:8080/API/lastFDRecord", "POST", data);
+                    string responsebody = Encoding.UTF8.GetString(result);
+                    var deserializeObject = JsonConvert.DeserializeObject(responsebody);
+                    JObject jo = JObject.Parse(deserializeObject.ToString());
+                    JToken lbn = jo.SelectToken("$.msg");
+
+                    Properties.Settings.Default.______last_bill_no = lbn.ToString();
+                    Properties.Settings.Default.Save();
+                }
+            }
+            catch (Exception err)
+            {
+                if (__isLogin)
+                {
+                    __send++;
+                    if (__send == 5)
+                    {
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        __send = 0;
+
+                        __isClose = false;
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___GetLastBillNo();
+                    }
+                }
+            }
         }
 
         private void ___SavePlayerLastBillNo(string username)
@@ -476,7 +572,7 @@ namespace TF_FD_Grab
                     {
                         string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
-                        SendEmail("<html><body>Brand: <font color='" + __brand_color + "'>-----" + __brand_code + "-----</font><br/>IP: 192.168.10.252<br/>Location: Robinsons Summit Office<br/>Date and Time: [" + datetime + "]<br/>Line Number: " + LineNumber() + "<br/>Message: <b>" + err.ToString() + "</b></body></html>");
+                        SendMyBot(err.ToString());
                         __send = 0;
 
                         __isClose = false;
@@ -514,7 +610,7 @@ namespace TF_FD_Grab
                         if (match.Success)
                         {
                             __player_id = match.Groups[1].Value;
-                            await ___PlayerListContactNumberEmailAsync(__player_id);
+                            await ___PlayerListContactNumberAsync(__player_id);
                         }
                         string username = Regex.Match(username__id.ToString(), "<span(.*?)>(.*?)</span>").Groups[2].Value;
                         JToken date_deposit = __jo.SelectToken("$.aaData[" + ii + "][0]").ToString().Substring(0, 19);
@@ -526,6 +622,7 @@ namespace TF_FD_Grab
                         string[] gateway__method_get = gateway__method.ToString().Split(br);
                         string gateway = gateway__method_get[0];
                         string method = gateway__method_get[4];
+                        string pg_bill_no = gateway__method_get[8];
                         JToken status = __jo.SelectToken("$.aaData[" + ii + "][12]");
                         JToken process_datetime = __jo.SelectToken("$.aaData[" + ii + "][13]");
                         string process_date = process_datetime.ToString().Substring(0, 10);
@@ -545,7 +642,7 @@ namespace TF_FD_Grab
                             __player_last_bill_no = bill_no.ToString().Trim();
                         }
 
-                        player_info.Add(username + "*|*" + name + "*|*" + date_deposit + "*|*" + vip + "*|*" + amount + "*|*" + gateway + "*|*" + status + "*|*" + bill_no + "*|*" + __playerlist_cn + "*|*" + process_datetime + "*|*" + method);
+                        player_info.Add(username + "*|*" + name + "*|*" + date_deposit + "*|*" + vip + "*|*" + amount + "*|*" + gateway + "*|*" + status + "*|*" + bill_no + "*|*" + __playerlist_cn + "*|*" + process_datetime + "*|*" + method + "*|*" + pg_bill_no);
                     }
                     else
                     {
@@ -572,6 +669,7 @@ namespace TF_FD_Grab
                                 string _contact_no = "";
                                 string _process_datetime = "";
                                 string _method = "";
+                                string _pg_bill_no = "";
 
                                 foreach (string value_inner in values_inner)
                                 {
@@ -632,22 +730,27 @@ namespace TF_FD_Grab
                                     {
                                         _method = value_inner;
                                     }
+                                    // PG Bill No
+                                    else if (count == 12)
+                                    {
+                                        _pg_bill_no = value_inner;
+                                    }
                                 }
 
                                 // ----- Insert Data
                                 using (StreamWriter file = new StreamWriter(Path.GetTempPath() + @"\fdgrab_tf.txt", true, Encoding.UTF8))
                                 {
-                                    file.WriteLine(_username + "*|*" + _name + "*|*" + _contact_no + "*|*" + _date_deposit + "*|*" + _vip + "*|*" + _amount + "*|*" + _gateway + "*|*" + _status + "*|*" + _bill_no + "*|*" + _process_datetime + "*|*" + _method);
+                                    file.WriteLine(_username + "*|*" + _name + "*|*" + _contact_no + "*|*" + _date_deposit + "*|*" + _vip + "*|*" + _amount + "*|*" + _gateway + "*|*" + _status + "*|*" + _bill_no + "*|*" + _process_datetime + "*|*" + _method + "*|*" + _pg_bill_no);
                                     file.Close();
                                 }
                                 if (__last_username == _username)
                                 {
                                     Thread.Sleep(1000);
-                                    ___InsertData(_username, _name, _date_deposit, _vip, _amount, _gateway, _status, _bill_no, _contact_no, _process_datetime, _method);
+                                    ___InsertData(_username, _name, _date_deposit, _vip, _amount, _gateway, _status, _bill_no, _contact_no, _process_datetime, _method, _pg_bill_no);
                                 }
                                 else
                                 {
-                                    ___InsertData(_username, _name, _date_deposit, _vip, _amount, _gateway, _status, _bill_no, _contact_no, _process_datetime, _method);
+                                    ___InsertData(_username, _name, _date_deposit, _vip, _amount, _gateway, _status, _bill_no, _contact_no, _process_datetime, _method, _pg_bill_no);
                                 }
                                 __last_username = _username;
 
@@ -674,7 +777,7 @@ namespace TF_FD_Grab
             }
         }
 
-        private void ___InsertData(string username, string name, string date_deposit, string vip, string amount, string gateway, string status, string bill_no, string contact_no, string process_datetime, string method)
+        private void ___InsertData(string username, string name, string date_deposit, string vip, string amount, string gateway, string status, string bill_no, string contact_no, string process_datetime, string method, string pg_bill_no)
         {
             try
             {
@@ -701,6 +804,8 @@ namespace TF_FD_Grab
                         ["success"] = status,
                         ["action_date"] = process_datetime,
                         ["method"] = method,
+                        ["trans_id"] = bill_no,
+                        ["pg_trans_id"] = pg_bill_no,
                         ["token"] = token
                     };
 
@@ -717,7 +822,7 @@ namespace TF_FD_Grab
                     {
                         string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
-                        SendEmail("<html><body>Brand: <font color='" + __brand_color + "'>-----" + __brand_code + "-----</font><br/>IP: 192.168.10.252<br/>Location: Robinsons Summit Office<br/>Date and Time: [" + datetime + "]<br/>Line Number: " + LineNumber() + "<br/>Message: <b>" + err.ToString() + "</b></body></html>");
+                        SendMyBot(err.ToString());
                         __send = 0;
 
                         __isClose = false;
@@ -725,13 +830,13 @@ namespace TF_FD_Grab
                     }
                     else
                     {
-                        ____InsertData2(username, name, date_deposit, vip, amount, gateway, status, bill_no, contact_no, process_datetime, method);
+                        ____InsertData2(username, name, date_deposit, vip, amount, gateway, status, bill_no, contact_no, process_datetime, method, pg_bill_no);
                     }
                 }
             }
         }
 
-        private void ____InsertData2(string username, string name, string date_deposit, string vip, string amount, string gateway, string status, string bill_no, string contact_no, string process_datetime, string method)
+        private void ____InsertData2(string username, string name, string date_deposit, string vip, string amount, string gateway, string status, string bill_no, string contact_no, string process_datetime, string method, string pg_bill_no)
         {
             try
             {
@@ -758,6 +863,8 @@ namespace TF_FD_Grab
                         ["success"] = status,
                         ["action_date"] = process_datetime,
                         ["method"] = method,
+                        ["trans_id"] = bill_no,
+                        ["pg_trans_id"] = pg_bill_no,
                         ["token"] = token
                     };
 
@@ -774,7 +881,7 @@ namespace TF_FD_Grab
                     {
                         string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
-                        SendEmail("<html><body>Brand: <font color='" + __brand_color + "'>-----" + __brand_code + "-----</font><br/>IP: 192.168.10.252<br/>Location: Robinsons Summit Office<br/>Date and Time: [" + datetime + "]<br/>Line Number: " + LineNumber() + "<br/>Message: <b>" + err.ToString() + "</b></body></html>");
+                        SendMyBot(err.ToString());
                         __send = 0;
 
                         __isClose = false;
@@ -782,7 +889,7 @@ namespace TF_FD_Grab
                     }
                     else
                     {
-                        ___InsertData(username, name, date_deposit, vip, amount, gateway, status, bill_no, contact_no, process_datetime, method);
+                        ___InsertData(username, name, date_deposit, vip, amount, gateway, status, bill_no, contact_no, process_datetime, method, pg_bill_no);
                     }
                 }
             }
@@ -830,41 +937,26 @@ namespace TF_FD_Grab
             }
         }
 
-        private void SendEmail(string get_message)
+        private void SendMyBot(string message)
         {
             try
             {
-                int port = 587;
-                string host = "smtp.gmail.com";
-                string username = "drake@18tech.com";
-                string password = "@ccess123418tech";
-                string mailFrom = "noreply@mail.com";
-                string mailTo = "drake@18tech.com";
-                string mailTitle = __brand_code + " FD Grab";
-                string mailMessage = get_message;
-
-                using (SmtpClient client = new SmtpClient())
+                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                string apiToken = "772918363:AAHn2ufmP3ocLEilQ1V-IHcqYMcSuFJHx5g";
+                string chatId = "@allandrake";
+                string text = "Brand:%20-----" + __brand_code + " " + __app + "-----%0AIP:%20192.168.10.252%0ALocation:%20Robinsons%20Summit%20Office%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                urlString = String.Format(urlString, apiToken, chatId, text);
+                WebRequest request = WebRequest.Create(urlString);
+                Stream rs = request.GetResponse().GetResponseStream();
+                StreamReader reader = new StreamReader(rs);
+                string line = "";
+                StringBuilder sb = new StringBuilder();
+                while (line != null)
                 {
-                    MailAddress from = new MailAddress(mailFrom);
-                    MailMessage message = new MailMessage
-                    {
-                        From = from
-                    };
-                    message.To.Add(mailTo);
-                    message.Subject = mailTitle;
-                    message.Body = mailMessage;
-                    message.IsBodyHtml = true;
-                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                    client.UseDefaultCredentials = false;
-                    client.Host = host;
-                    client.Port = port;
-                    client.EnableSsl = true;
-                    client.Credentials = new NetworkCredential
-                    {
-                        UserName = username,
-                        Password = password
-                    };
-                    client.Send(message);
+                    line = reader.ReadLine();
+                    if (line != null)
+                        sb.Append(line);
                 }
             }
             catch (Exception err)
@@ -872,7 +964,7 @@ namespace TF_FD_Grab
                 __send++;
                 if (__send == 5)
                 {
-                    SendEmail(get_message);
+                    SendMyBot(message);
                 }
                 else
                 {
@@ -881,7 +973,7 @@ namespace TF_FD_Grab
             }
         }
 
-        private async Task ___PlayerListContactNumberEmailAsync(string id)
+        private async Task ___PlayerListContactNumberAsync(string id)
         {
             try
             {
@@ -942,7 +1034,20 @@ namespace TF_FD_Grab
             {
                 if (__isLogin)
                 {
-                    await ___PlayerListContactNumberEmailAsync(id);
+                    if (__send == 5)
+                    {
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        __send = 0;
+
+                        __isClose = false;
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        await ___PlayerListContactNumberAsync(id);
+                    }
                 }
             }
         }
@@ -959,6 +1064,153 @@ namespace TF_FD_Grab
         private void label_player_last_bill_no_MouseClick(object sender, MouseEventArgs e)
         {
             Clipboard.SetText(label_player_last_bill_no.Text.Replace("Last Bill No.: ", "").Trim());
+        }
+
+        private async Task ___GetListDepositVerify()
+        {
+            var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+            WebClient wc = new WebClient();
+
+            wc.Headers.Add("Cookie", cookie);
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            wc.Headers["X-Requested-With"] = "XMLHttpRequest";
+
+            var reqparm_gettotal = new NameValueCollection
+            {
+                {"s_btype", ""},
+                {"payment", "25"},
+                {"displaytype", "2"},
+                {"displaytab", "2"},
+                {"ftime", "false"},
+                {"dno", ""},
+                {"s_type", "1"},
+                {"s_keyword", ""},
+                {"s_playercurrency", "ALL"},
+                {"skip", "0"},
+                {"data[0][name]", "sEcho"},
+                {"data[0][value]", __secho++.ToString()},
+                {"data[1][name]", "iColumns"},
+                {"data[1][value]", "11"},
+                {"data[2][name]", "sColumns"},
+                {"data[2][value]", ""},
+                {"data[3][name]", "iDisplayStart"},
+                {"data[3][value]", "0"},
+                {"data[4][name]", "iDisplayLength"},
+                {"data[4][value]", "5000"}
+            };
+
+            byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/playerFund/dptVerifyAjax", "POST", reqparm_gettotal);
+            string responsebody = Encoding.UTF8.GetString(result);
+            var deserializeObject = JsonConvert.DeserializeObject(responsebody);
+            __jo_auto_reject = JObject.Parse(deserializeObject.ToString());
+            JToken count = __jo_auto_reject.SelectToken("$.aaData");
+            __result_count_json_auto_reject = count.Count();
+            await ___PlayerListAsync_AutoRejectAsync();
+            __send = 0;
+        }
+
+        private JObject __jo_auto_reject;
+        private int __result_count_json_auto_reject;
+        private bool __isBreak_auto_reject = false;
+        private bool __isNotAutoReject = false;
+
+        private async Task ___PlayerListAsync_AutoRejectAsync()
+        {
+            List<string> player_info = new List<string>();
+
+            for (int i = 0; i < 1; i++)
+            {
+                if (__isBreak_auto_reject)
+                {
+                    break;
+                }
+
+                for (int ii = 0; ii < __result_count_json_auto_reject; ii++)
+                {
+                    JToken time__bill_no = __jo_auto_reject.SelectToken("$.aaData[" + ii + "][1]").ToString();
+                    char[] br = "<br>".ToCharArray();
+                    string[] time__bill_no_get = time__bill_no.ToString().Split(br);
+                    string time = time__bill_no_get[0];
+
+                    DateTime time_now = DateTime.Now;
+                    DateTime start = DateTime.ParseExact(time, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+
+                    TimeSpan diff = time_now - start;
+                    if (diff.Minutes >= 15)
+                    {
+
+                        __isNotAutoReject = true;
+                        __bill_no = time__bill_no_get[4];
+                        ___ProcessDepositVerify();
+                        __isBreak_auto_reject = true;
+                    }
+                }
+            }
+
+            if (!__isNotAutoReject)
+            {
+                await ___GetListDepositVerify();
+            }
+        }
+
+        private void ___ProcessDepositVerify()
+        {
+            webBrowser.Navigate("http://cs.tianfa86.org/playerFund/dptVerify");
+            __autoReject = true;
+        }
+
+        private void timer_still_loading_Tick(object sender, EventArgs e)
+        {
+            timer_still_loading.Stop();
+            bool _firstProcess = true;
+            while (_firstProcess)
+            {
+                string loading = webBrowser.Document.GetElementById("data1_processing").OuterHtml.ToString();
+                if (loading.Contains("visible"))
+                {
+                    _firstProcess = true;
+                }
+                else
+                {
+                    _firstProcess = false;
+                }
+            }
+
+            HtmlElementCollection links = webBrowser.Document.GetElementsByTagName("a");
+            foreach (HtmlElement link in links)
+            {
+                if (link.InnerText == "verify" || link.InnerText == "审核")
+                {
+                    link.InvokeMember("Click");
+                    break;
+                }
+            }
+
+            timer_still_loading.Start();
+        }
+
+        private void timer_still_loading_1_Tick(object sender, EventArgs e)
+        {
+            timer_still_loading.Stop();
+            webBrowser.Document.GetElementsByTagName("input").GetElementsByName("checkDpt")[1].InvokeMember("click");
+
+            HtmlElement submit = webBrowser.Document.GetElementById("btn_refuse");
+            submit.InvokeMember("Click");
+
+            __isBreak_auto_reject = false;
+            __isNotAutoReject = false;
+            timer_auto_reject.Start();
+        }
+
+        private async void timer_auto_reject_TickAsync(object sender, EventArgs e)
+        {
+            timer_auto_reject.Stop();
+
+            if (__isLogin)
+            {
+                await ___GetListDepositVerify();
+            }
         }
     }
 }
