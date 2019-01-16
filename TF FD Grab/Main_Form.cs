@@ -8,7 +8,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -37,6 +36,7 @@ namespace TF_FD_Grab
         private string __player_last_bill_no = "";
         private string __player_id = "";
         private string __playerlist_cn = "";
+        private string __playerlist_cn_pending = "";
         private string __last_username = "";
         private string __bill_no = "";
         Form __mainFormHandler;
@@ -254,7 +254,13 @@ namespace TF_FD_Grab
         // Form Load
         private void Main_Form_Load(object sender, EventArgs e)
         {
+            // asdasd
+            //Properties.Settings.Default.______pending_bill_no = "";
+            //Properties.Settings.Default.Save();
+            
             webBrowser.Navigate("http://cs.tianfa86.org/account/login");
+
+            label1.Text = Properties.Settings.Default.______pending_bill_no;
         }
 
         static int LineNumber([System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
@@ -642,11 +648,107 @@ namespace TF_FD_Grab
                             __player_last_bill_no = bill_no.ToString().Trim();
                         }
 
+                        if (Properties.Settings.Default.______pending_bill_no.Contains(bill_no.ToString()))
+                        {
+                            Properties.Settings.Default.______pending_bill_no = Properties.Settings.Default.______pending_bill_no.Replace(bill_no.ToString() + "*|*", "");
+                        }
+
                         player_info.Add(username + "*|*" + name + "*|*" + date_deposit + "*|*" + vip + "*|*" + amount + "*|*" + gateway + "*|*" + status + "*|*" + bill_no + "*|*" + __playerlist_cn + "*|*" + process_datetime + "*|*" + method + "*|*" + pg_bill_no);
                     }
                     else
                     {
-                        // send to api
+                        await ___GetListDepositVerify_Pending();
+
+                        if (__result_count_json_auto_reject_pending > 0)
+                        {
+                            for (int i_pending = 0; i_pending < 1; i_pending++)
+                            {
+                                for (int ii_pending = 0; ii_pending < __result_count_json_auto_reject_pending; ii_pending++)
+                                {
+                                    JToken time__bill_no = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][1]").ToString();
+                                    char[] br = "<br>".ToCharArray();
+                                    string[] time__bill_no_get = time__bill_no.ToString().Split(br);
+                                    string date_deposit = time__bill_no_get[0];
+                                    string bill_no_pending = time__bill_no_get[4];
+
+                                    bool isContains = false;
+                                    char[] split = "*|*".ToCharArray();
+                                    string[] values = Properties.Settings.Default.______pending_bill_no.Split(split);
+                                    foreach (var value in values)
+                                    {
+                                        if (value != "")
+                                        {
+                                            if (bill_no_pending == value)
+                                            {
+                                                isContains = true;
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                isContains = false;
+                                            }
+                                        }
+                                    }
+
+                                    if (!isContains)
+                                    {
+                                        Properties.Settings.Default.______pending_bill_no += bill_no_pending + "*|*";
+                                        label1.Text = Properties.Settings.Default.______pending_bill_no;
+                                        Properties.Settings.Default.Save();
+
+                                        JToken username__id = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][2]").ToString();
+                                        Match match = Regex.Match(username__id.ToString(), @"'([^']*)");
+                                        if (match.Success)
+                                        {
+                                            string player_id = match.Groups[1].Value;
+                                            await ___PlayerListContactNumberAsync_Pending(player_id);
+                                        }
+                                        string username = Regex.Match(username__id.ToString(), "<span(.*?)>(.*?)</span>").Groups[2].Value;
+                                        JToken name = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][3]").ToString();
+                                        JToken vip = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][4]").ToString();
+                                        JToken amount = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][6]").ToString();
+                                        amount = Regex.Match(amount.ToString(), "<font(.*?)>(.*?)</font>").Groups[2].Value.Replace("(RMB) - ¥ ", "").Trim();
+                                        JToken gateway__pg_bill_no = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][7]").ToString();
+                                        string[] gateway__pg_bill_no_get = gateway__pg_bill_no.ToString().Split(br);
+                                        string gateway = gateway__pg_bill_no_get[0];
+                                        string pg_bill_no = CleanPGBill(gateway__pg_bill_no_get[4]);
+
+                                        player_info.Add(username + "*|*" + name + "*|*" + date_deposit + "*|*" + vip + "*|*" + amount + "*|*" + gateway + "*|*" + "2" + "*|*" + bill_no_pending + "*|*" + __playerlist_cn_pending + "*|*" + "" + "*|*" + "" + "*|*" + pg_bill_no);
+                                    }
+                                    else if (Properties.Settings.Default.______pending_bill_no == "")
+                                    {
+                                        Properties.Settings.Default.______pending_bill_no += bill_no_pending + "*|*";
+                                        label1.Text = Properties.Settings.Default.______pending_bill_no;
+                                        Properties.Settings.Default.Save();
+
+                                        Properties.Settings.Default.______pending_bill_no += bill_no_pending + "*|*";
+                                        label1.Text = Properties.Settings.Default.______pending_bill_no;
+                                        Properties.Settings.Default.Save();
+
+                                        JToken username__id = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][2]").ToString();
+                                        Match match = Regex.Match(username__id.ToString(), @"'([^']*)");
+                                        if (match.Success)
+                                        {
+                                            string player_id = match.Groups[1].Value;
+                                            await ___PlayerListContactNumberAsync_Pending(player_id);
+                                        }
+                                        string username = Regex.Match(username__id.ToString(), "<span(.*?)>(.*?)</span>").Groups[2].Value;
+                                        JToken name = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][3]").ToString();
+                                        JToken vip = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][4]").ToString();
+                                        JToken amount = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][6]").ToString();
+                                        amount = Regex.Match(amount.ToString(), "<font(.*?)>(.*?)</font>").Groups[2].Value.Replace("(RMB) - ¥ ", "").Trim();
+                                        JToken gateway__pg_bill_no = __jo_auto_reject_pending.SelectToken("$.aaData[" + ii_pending + "][7]").ToString();
+                                        string[] gateway__pg_bill_no_get = gateway__pg_bill_no.ToString().Split(br);
+                                        string gateway = gateway__pg_bill_no_get[0];
+                                        string pg_bill_no = CleanPGBill(gateway__pg_bill_no_get[4]);
+
+
+                                        player_info.Add(username + "*|*" + name + "*|*" + date_deposit + "*|*" + vip + "*|*" + amount + "*|*" + gateway + "*|*" + "2" + "*|*" + bill_no_pending + "*|*" + __playerlist_cn_pending + "*|*" + "" + "*|*" + "" + "*|*" + pg_bill_no);
+                                    }
+                                }
+                            }
+                        }
+
                         if (player_info.Count != 0)
                         {
                             player_info.Reverse();
@@ -745,7 +847,7 @@ namespace TF_FD_Grab
                                 }
                                 if (__last_username == _username)
                                 {
-                                    Thread.Sleep(1000);
+                                    Thread.Sleep(100);
                                     ___InsertData(_username, _name, _date_deposit, _vip, _amount, _gateway, _status, _bill_no, _contact_no, _process_datetime, _method, _pg_bill_no);
                                 }
                                 else
@@ -1052,6 +1154,84 @@ namespace TF_FD_Grab
             }
         }
 
+        private async Task ___PlayerListContactNumberAsync_Pending(string id)
+        {
+            try
+            {
+                var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+                WebClient wc = new WebClient();
+
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                string result_gettotal_responsebody = await wc.DownloadStringTaskAsync("http://cs.tianfa86.org/player/playerDetailBox?id=" + id);
+
+                int i_label = 0;
+                int cn = 0;
+                bool cn_detect = false;
+                bool cn_ = false;
+
+                Regex ItemRegex_label = new Regex("<label class=\"control-label\">(.*?)</label>", RegexOptions.Compiled);
+                foreach (Match ItemMatch in ItemRegex_label.Matches(result_gettotal_responsebody))
+                {
+                    string item = ItemMatch.Groups[1].Value;
+                    i_label++;
+
+                    if (item.Contains("Cellphone No") || item.Contains("手机号"))
+                    {
+                        cn = i_label;
+                        cn_detect = true;
+                    }
+                    else if (item.Contains("Agent No") || item.Contains("代理编号"))
+                    {
+                        if (!cn_detect)
+                        {
+                            cn_ = true;
+                        }
+                    }
+                }
+
+                if (cn_)
+                {
+                    cn--;
+                }
+
+                int i_span = 0;
+
+                Regex ItemRegex_span = new Regex("<span class=\"text\">(.*?)</span>", RegexOptions.Compiled);
+                foreach (Match ItemMatch in ItemRegex_span.Matches(result_gettotal_responsebody))
+                {
+                    i_span++;
+                    string item = ItemMatch.Groups[1].Value;
+
+                    if (i_span == cn)
+                    {
+                        __playerlist_cn_pending = ItemMatch.Groups[1].Value;
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                if (__isLogin)
+                {
+                    if (__send == 5)
+                    {
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        __send = 0;
+
+                        __isClose = false;
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        await ___PlayerListContactNumberAsync_Pending(id);
+                    }
+                }
+            }
+        }
+
         private void label_player_last_bill_no_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -1106,7 +1286,7 @@ namespace TF_FD_Grab
             __jo_auto_reject = JObject.Parse(deserializeObject.ToString());
             JToken count = __jo_auto_reject.SelectToken("$.aaData");
             __result_count_json_auto_reject = count.Count();
-            await ___PlayerListAsync_AutoRejectAsync();
+            ___PlayerListAsync_AutoRejectAsync();
             __send = 0;
         }
 
@@ -1115,7 +1295,7 @@ namespace TF_FD_Grab
         private bool __isBreak_auto_reject = false;
         private bool __isNotAutoReject = false;
 
-        private async Task ___PlayerListAsync_AutoRejectAsync()
+        private void ___PlayerListAsync_AutoRejectAsync()
         {
             List<string> player_info = new List<string>();
 
@@ -1142,6 +1322,9 @@ namespace TF_FD_Grab
 
                         __isNotAutoReject = true;
                         __bill_no = time__bill_no_get[4];
+                        Properties.Settings.Default.______pending_bill_no = Properties.Settings.Default.______pending_bill_no.Replace(__bill_no + "*|*", "");
+                        label1.Text = Properties.Settings.Default.______pending_bill_no;
+                        Properties.Settings.Default.Save();
                         ___ProcessDepositVerify();
                         __isBreak_auto_reject = true;
                     }
@@ -1150,7 +1333,7 @@ namespace TF_FD_Grab
 
             if (!__isNotAutoReject)
             {
-                await ___GetListDepositVerify();
+                timer_auto_reject.Start();
             }
         }
 
@@ -1211,6 +1394,88 @@ namespace TF_FD_Grab
             {
                 await ___GetListDepositVerify();
             }
+        }
+
+        private JObject __jo_auto_reject_pending;
+        private int __result_count_json_auto_reject_pending;
+
+        private async Task ___GetListDepositVerify_Pending()
+        {
+            try
+            {
+                var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+                WebClient wc = new WebClient();
+
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                wc.Headers["X-Requested-With"] = "XMLHttpRequest";
+
+                var reqparm_gettotal = new NameValueCollection
+                {
+                    {"s_btype", ""},
+                    {"payment", "25"},
+                    {"displaytype", "2"},
+                    {"displaytab", "2"},
+                    {"ftime", "false"},
+                    {"dno", ""},
+                    {"s_type", "1"},
+                    {"s_keyword", ""},
+                    {"s_playercurrency", "ALL"},
+                    {"skip", "0"},
+                    {"data[0][name]", "sEcho"},
+                    {"data[0][value]", __secho++.ToString()},
+                    {"data[1][name]", "iColumns"},
+                    {"data[1][value]", "11"},
+                    {"data[2][name]", "sColumns"},
+                    {"data[2][value]", ""},
+                    {"data[3][name]", "iDisplayStart"},
+                    {"data[3][value]", "0"},
+                    {"data[4][name]", "iDisplayLength"},
+                    {"data[4][value]", "5000"}
+                };
+
+                byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/playerFund/dptVerifyAjax", "POST", reqparm_gettotal);
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserializeObject = JsonConvert.DeserializeObject(responsebody);
+                __jo_auto_reject_pending = JObject.Parse(deserializeObject.ToString());
+                JToken count = __jo_auto_reject_pending.SelectToken("$.aaData");
+                __result_count_json_auto_reject_pending = count.Count();
+                __send = 0;
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
+                    __send = 0;
+
+                    __isClose = false;
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    await ___GetListDepositVerify_Pending();
+                }
+            }
+        }
+
+        private string CleanPGBill(string phone)
+        {
+            Regex digitsOnly = new Regex(@"[^\d]");
+            return digitsOnly.Replace(phone, "");
+        }
+
+        private void panel1_MouseClick(object sender, MouseEventArgs e)
+        {
+            label1.Visible = true;
+        }
+
+        private void panel2_MouseClick(object sender, MouseEventArgs e)
+        {
+            label1.Visible = false;
         }
     }
 }

@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main_Form));
             this.panel_header = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
             this.pictureBox_header = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label_title = new System.Windows.Forms.Label();
@@ -62,6 +63,7 @@
             // panel_header
             // 
             this.panel_header.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(16)))), ((int)(((byte)(90)))), ((int)(((byte)(101)))));
+            this.panel_header.Controls.Add(this.label1);
             this.panel_header.Controls.Add(this.pictureBox_header);
             this.panel_header.Controls.Add(this.panel1);
             this.panel_header.Controls.Add(this.label_title);
@@ -73,6 +75,14 @@
             this.panel_header.Size = new System.Drawing.Size(466, 45);
             this.panel_header.TabIndex = 1;
             this.panel_header.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_header_MouseDown);
+            // 
+            // label1
+            // 
+            this.label1.Location = new System.Drawing.Point(9, 12);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(445, 149);
+            this.label1.TabIndex = 7;
+            this.label1.Text = "label1";
             // 
             // pictureBox_header
             // 
@@ -92,6 +102,7 @@
             this.panel1.Size = new System.Drawing.Size(158, 10);
             this.panel1.TabIndex = 1;
             this.panel1.TabStop = true;
+            this.panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseClick);
             this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
             // 
             // label_title
@@ -155,6 +166,7 @@
             this.panel2.Size = new System.Drawing.Size(158, 10);
             this.panel2.TabIndex = 5;
             this.panel2.TabStop = true;
+            this.panel2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseClick);
             this.panel2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseDown);
             // 
             // label_player_last_bill_no
@@ -322,5 +334,6 @@
         private System.Windows.Forms.Timer timer_still_loading;
         private System.Windows.Forms.Timer timer_still_loading_1;
         private System.Windows.Forms.Timer timer_auto_reject;
+        private System.Windows.Forms.Label label1;
     }
 }

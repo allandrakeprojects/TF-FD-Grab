@@ -34,5 +34,17 @@ namespace TF_FD_Grab.Properties {
                 this["______last_bill_no"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ______pending_bill_no {
+            get {
+                return ((string)(this["______pending_bill_no"]));
+            }
+            set {
+                this["______pending_bill_no"] = value;
+            }
+        }
     }
 }
