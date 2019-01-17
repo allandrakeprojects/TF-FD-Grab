@@ -1003,42 +1003,6 @@ namespace TF_FD_Grab
             await ___GetPlayerListsRequest();
         }
 
-        private void SendITSupport(string message)
-        {
-            try
-            {
-                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
-                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
-                string apiToken = "798422517:AAGxMBvataWOid8SRDMid0nkTv0q0l64-Qs";
-                string chatId = "@fd_grab_it_support";
-                string text = "Brand:%20-----" + __brand_code + "-----%0AIP:%20192.168.10.252%0ALocation:%20Robinsons%20Summit%20Office%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
-                urlString = String.Format(urlString, apiToken, chatId, text);
-                WebRequest request = WebRequest.Create(urlString);
-                Stream rs = request.GetResponse().GetResponseStream();
-                StreamReader reader = new StreamReader(rs);
-                string line = "";
-                StringBuilder sb = new StringBuilder();
-                while (line != null)
-                {
-                    line = reader.ReadLine();
-                    if (line != null)
-                        sb.Append(line);
-                }
-            }
-            catch (Exception err)
-            {
-                __send++;
-                if (__send == 5)
-                {
-                    SendITSupport(message);
-                }
-                else
-                {
-                    MessageBox.Show(err.ToString());
-                }
-            }
-        }
-
         private void SendMyBot(string message)
         {
             try
@@ -1066,11 +1030,53 @@ namespace TF_FD_Grab
                 __send++;
                 if (__send == 5)
                 {
-                    SendMyBot(message);
+                    MessageBox.Show(err.ToString());
+
+                    __isClose = false;
+                    Environment.Exit(0);
                 }
                 else
                 {
+                    SendMyBot(message);
+                }
+            }
+        }
+
+        private void SendITSupport(string message)
+        {
+            try
+            {
+                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                string apiToken = "798422517:AAGTProXoK8LkOpfG6qAUPho6JH4M9PUaFA";
+                string chatId = "@fd_grab_it_support";
+                string text = "Brand:%20-----" + __brand_code + "-----%0AIP:%20192.168.10.252%0ALocation:%20Robinsons%20Summit%20Office%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                urlString = String.Format(urlString, apiToken, chatId, text);
+                WebRequest request = WebRequest.Create(urlString);
+                Stream rs = request.GetResponse().GetResponseStream();
+                StreamReader reader = new StreamReader(rs);
+                string line = "";
+                StringBuilder sb = new StringBuilder();
+                while (line != null)
+                {
+                    line = reader.ReadLine();
+                    if (line != null)
+                        sb.Append(line);
+                }
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
                     MessageBox.Show(err.ToString());
+
+                    __isClose = false;
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    SendITSupport(message);
                 }
             }
         }
