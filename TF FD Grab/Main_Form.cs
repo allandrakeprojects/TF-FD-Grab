@@ -1254,46 +1254,66 @@ namespace TF_FD_Grab
 
         private async Task ___GetListDepositVerify()
         {
-            var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
-            WebClient wc = new WebClient();
-
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-            wc.Headers["X-Requested-With"] = "XMLHttpRequest";
-
-            var reqparm_gettotal = new NameValueCollection
+            try
             {
-                {"s_btype", ""},
-                {"payment", "25"},
-                {"displaytype", "2"},
-                {"displaytab", "2"},
-                {"ftime", "false"},
-                {"dno", ""},
-                {"s_type", "1"},
-                {"s_keyword", ""},
-                {"s_playercurrency", "ALL"},
-                {"skip", "0"},
-                {"data[0][name]", "sEcho"},
-                {"data[0][value]", __secho++.ToString()},
-                {"data[1][name]", "iColumns"},
-                {"data[1][value]", "11"},
-                {"data[2][name]", "sColumns"},
-                {"data[2][value]", ""},
-                {"data[3][name]", "iDisplayStart"},
-                {"data[3][value]", "0"},
-                {"data[4][name]", "iDisplayLength"},
-                {"data[4][value]", "5000"}
-            };
+                var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+                WebClient wc = new WebClient();
 
-            byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/playerFund/dptVerifyAjax", "POST", reqparm_gettotal);
-            string responsebody = Encoding.UTF8.GetString(result);
-            var deserializeObject = JsonConvert.DeserializeObject(responsebody);
-            __jo_auto_reject = JObject.Parse(deserializeObject.ToString());
-            JToken count = __jo_auto_reject.SelectToken("$.aaData");
-            __result_count_json_auto_reject = count.Count();
-            ___PlayerListAsync_AutoRejectAsync();
-            __send = 0;
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                wc.Headers["X-Requested-With"] = "XMLHttpRequest";
+
+                var reqparm_gettotal = new NameValueCollection
+                {
+                    {"s_btype", ""},
+                    {"payment", "25"},
+                    {"displaytype", "2"},
+                    {"displaytab", "2"},
+                    {"ftime", "false"},
+                    {"dno", ""},
+                    {"s_type", "1"},
+                    {"s_keyword", ""},
+                    {"s_playercurrency", "ALL"},
+                    {"skip", "0"},
+                    {"data[0][name]", "sEcho"},
+                    {"data[0][value]", __secho++.ToString()},
+                    {"data[1][name]", "iColumns"},
+                    {"data[1][value]", "11"},
+                    {"data[2][name]", "sColumns"},
+                    {"data[2][value]", ""},
+                    {"data[3][name]", "iDisplayStart"},
+                    {"data[3][value]", "0"},
+                    {"data[4][name]", "iDisplayLength"},
+                    {"data[4][value]", "5000"}
+                };
+
+                byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/playerFund/dptVerifyAjax", "POST", reqparm_gettotal);
+                string responsebody = Encoding.UTF8.GetString(result);
+                var deserializeObject = JsonConvert.DeserializeObject(responsebody);
+                __jo_auto_reject = JObject.Parse(deserializeObject.ToString());
+                JToken count = __jo_auto_reject.SelectToken("$.aaData");
+                __result_count_json_auto_reject = count.Count();
+                ___PlayerListAsync_AutoRejectAsync();
+                __send = 0;
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
+                    __send = 0;
+
+                    __isClose = false;
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    await ___GetListDepositVerify();
+                }
+            }
         }
 
         private JObject __jo_auto_reject;
