@@ -51,6 +51,8 @@
             this.timer_still_loading = new System.Windows.Forms.Timer(this.components);
             this.timer_still_loading_1 = new System.Windows.Forms.Timer(this.components);
             this.timer_auto_reject = new System.Windows.Forms.Timer(this.components);
+            this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
+            this.timer_detect_running = new System.Windows.Forms.Timer(this.components);
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_header)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
@@ -276,6 +278,18 @@
             this.timer_auto_reject.Interval = 20000;
             this.timer_auto_reject.Tick += new System.EventHandler(this.timer_auto_reject_TickAsync);
             // 
+            // timer_flush_memory
+            // 
+            this.timer_flush_memory.Enabled = true;
+            this.timer_flush_memory.Interval = 60000;
+            this.timer_flush_memory.Tick += new System.EventHandler(this.timer_flush_memory_Tick);
+            // 
+            // timer_detect_running
+            // 
+            this.timer_detect_running.Enabled = true;
+            this.timer_detect_running.Interval = 60000;
+            this.timer_detect_running.Tick += new System.EventHandler(this.timer_detect_running_Tick);
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -336,5 +350,7 @@
         private System.Windows.Forms.Timer timer_still_loading_1;
         private System.Windows.Forms.Timer timer_auto_reject;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Timer timer_flush_memory;
+        private System.Windows.Forms.Timer timer_detect_running;
     }
 }

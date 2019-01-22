@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -33,6 +34,7 @@ namespace TF_FD_Grab
         private string __brand_code = "TF";
         private string __brand_color = "#9A0000";
         private string __app = "FD Grab";
+        private string __app_type = "1";
         private string __player_last_bill_no = "";
         private string __player_id = "";
         private string __playerlist_cn = "";
@@ -305,7 +307,7 @@ namespace TF_FD_Grab
                             webBrowser.WebBrowserShortcutsEnabled = true;
                         }
 
-                        if (webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/player/list") || webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/site/index") || webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/player/online") || webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/message/platform"))
+                        if (webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/player/list") || webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/site/index") || webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/player/online") || webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/message/platform") || webBrowser.Url.ToString().Equals("http://cs.tianfa86.org/playerFund/dptVerify"))
                         {
                             label_brand.Visible = true;
                             pictureBox_loader.Visible = true;
@@ -327,6 +329,34 @@ namespace TF_FD_Grab
                                 await ___GetListDepositVerify();
                                 await ___GetPlayerListsRequest();
                             }
+
+                            if (__autoReject)
+                            {
+                                __autoReject = false;
+                                foreach (HtmlElement he in webBrowser.Document.All.GetElementsByName("dno"))
+                                {
+                                    he.SetAttribute("value", __bill_no);
+                                }
+
+                                HtmlElement submit = webBrowser.Document.GetElementById("s_submit");
+                                submit.InvokeMember("Click");
+
+                                HtmlElement next_tab = webBrowser.Document.GetElementById("sf");
+                                next_tab.InvokeMember("Click");
+
+                                timer_still_loading.Start();
+                            }
+                        }
+
+                        if (webBrowser.Url.ToString().ToLower().Contains("error"))
+                        {
+                            string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                            SendITSupport("There's a problem to the server, please re-open the application.");
+                            SendMyBot("BO Error");
+                            __send = 0;
+
+                            __isClose = false;
+                            Environment.Exit(0);
                         }
                     }
                     catch (Exception err)
@@ -651,6 +681,8 @@ namespace TF_FD_Grab
                         if (Properties.Settings.Default.______pending_bill_no.Contains(bill_no.ToString()))
                         {
                             Properties.Settings.Default.______pending_bill_no = Properties.Settings.Default.______pending_bill_no.Replace(bill_no.ToString() + "*|*", "");
+                            label1.Text = Properties.Settings.Default.______pending_bill_no;
+                            Properties.Settings.Default.Save();
                         }
 
                         player_info.Add(username + "*|*" + name + "*|*" + date_deposit + "*|*" + vip + "*|*" + amount + "*|*" + gateway + "*|*" + status + "*|*" + bill_no + "*|*" + __playerlist_cn + "*|*" + process_datetime + "*|*" + method + "*|*" + pg_bill_no);
@@ -717,10 +749,6 @@ namespace TF_FD_Grab
                                     }
                                     else if (Properties.Settings.Default.______pending_bill_no == "")
                                     {
-                                        Properties.Settings.Default.______pending_bill_no += bill_no_pending + "*|*";
-                                        label1.Text = Properties.Settings.Default.______pending_bill_no;
-                                        Properties.Settings.Default.Save();
-
                                         Properties.Settings.Default.______pending_bill_no += bill_no_pending + "*|*";
                                         label1.Text = Properties.Settings.Default.______pending_bill_no;
                                         Properties.Settings.Default.Save();
@@ -1048,9 +1076,9 @@ namespace TF_FD_Grab
             {
                 string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                 string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
-                string apiToken = "798422517:AAGTProXoK8LkOpfG6qAUPho6JH4M9PUaFA";
-                string chatId = "@fd_grab_it_support";
-                string text = "Brand:%20-----" + __brand_code + "-----%0AIP:%20192.168.10.252%0ALocation:%20Robinsons%20Summit%20Office%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
+                string chatId = "@it_support_ssi";
+                string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20192.168.10.252%0ALocation:%20Robinsons%20Summit%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
                 urlString = String.Format(urlString, apiToken, chatId, text);
                 WebRequest request = WebRequest.Create(urlString);
                 Stream rs = request.GetResponse().GetResponseStream();
@@ -1061,7 +1089,9 @@ namespace TF_FD_Grab
                 {
                     line = reader.ReadLine();
                     if (line != null)
+                    {
                         sb.Append(line);
+                    }
                 }
             }
             catch (Exception err)
@@ -1396,12 +1426,12 @@ namespace TF_FD_Grab
                 }
             }
 
-            timer_still_loading.Start();
+            timer_still_loading_1.Start();
         }
 
         private void timer_still_loading_1_Tick(object sender, EventArgs e)
         {
-            timer_still_loading.Stop();
+            timer_still_loading_1.Stop();
             webBrowser.Document.GetElementsByTagName("input").GetElementsByName("checkDpt")[1].InvokeMember("click");
 
             HtmlElement submit = webBrowser.Document.GetElementById("btn_refuse");
@@ -1502,6 +1532,127 @@ namespace TF_FD_Grab
         private void panel2_MouseClick(object sender, MouseEventArgs e)
         {
             label1.Visible = false;
+        }
+
+        private void timer_flush_memory_Tick(object sender, EventArgs e)
+        {
+            ___FlushMemory();
+        }
+
+        public static void ___FlushMemory()
+        {
+            Process prs = Process.GetCurrentProcess();
+            try
+            {
+                prs.MinWorkingSet = (IntPtr)(300000);
+            }
+            catch (Exception err)
+            {
+                // leave blank
+            }
+        }
+
+        private void timer_detect_running_Tick(object sender, EventArgs e)
+        {
+            ___DetectRunning();
+        }
+
+        private void ___DetectRunning()
+        {
+            try
+            {
+                string datetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string password = __brand_code + datetime + "youdieidie";
+                byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
+                byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
+                string token = BitConverter.ToString(hash)
+                   .Replace("-", string.Empty)
+                   .ToLower();
+
+                using (var wb = new WebClient())
+                {
+                    var data = new NameValueCollection
+                    {
+                        ["brand_code"] = __brand_code,
+                        ["app_type"] = __app_type,
+                        ["last_update"] = datetime,
+                        ["token"] = token
+                    };
+
+                    var response = wb.UploadValues("http://zeus.ssimakati.com:8080/API/updateAppStatus", "POST", data);
+                    string responseInString = Encoding.UTF8.GetString(response);
+                }
+            }
+            catch (Exception err)
+            {
+                if (__isLogin)
+                {
+                    __send++;
+                    if (__send == 5)
+                    {
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        __send = 0;
+
+                        __isClose = false;
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___DetectRunning2();
+                    }
+                }
+            }
+        }
+
+        private void ___DetectRunning2()
+        {
+            try
+            {
+                string datetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string password = __brand_code + datetime + "youdieidie";
+                byte[] encodedPassword = new UTF8Encoding().GetBytes(password);
+                byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(encodedPassword);
+                string token = BitConverter.ToString(hash)
+                   .Replace("-", string.Empty)
+                   .ToLower();
+
+                using (var wb = new WebClient())
+                {
+                    var data = new NameValueCollection
+                    {
+                        ["brand_code"] = __brand_code,
+                        ["app_type"] = __app_type,
+                        ["last_update"] = datetime,
+                        ["token"] = token
+                    };
+
+                    var response = wb.UploadValues("http://zeus2.ssimakati.com:8080/API/updateAppStatus", "POST", data);
+                    string responseInString = Encoding.UTF8.GetString(response);
+                }
+            }
+            catch (Exception err)
+            {
+                if (__isLogin)
+                {
+                    __send++;
+                    if (__send == 5)
+                    {
+                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
+                        __send = 0;
+
+                        __isClose = false;
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___DetectRunning();
+                    }
+                }
+            }
         }
     }
 }
