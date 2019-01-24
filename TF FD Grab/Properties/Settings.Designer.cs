@@ -70,5 +70,17 @@ namespace TF_FD_Grab.Properties {
                 this["______server_location"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("500")]
+        public int ______thread_mill {
+            get {
+                return ((int)(this["______thread_mill"]));
+            }
+            set {
+                this["______thread_mill"] = value;
+            }
+        }
     }
 }

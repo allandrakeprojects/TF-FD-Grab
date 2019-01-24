@@ -224,7 +224,7 @@ namespace TF_FD_Grab
             if (dr == DialogResult.Yes)
             {
                 __isClose = true;
-                Application.Exit();
+                Environment.Exit(0);
             }
         }
 
@@ -246,11 +246,11 @@ namespace TF_FD_Grab
                 }
                 else
                 {
-                    Application.Exit();
+                    Environment.Exit(0);
                 }
             }
 
-            Application.Exit();
+            Environment.Exit(0);
         }
 
         // Form Load
@@ -356,7 +356,7 @@ namespace TF_FD_Grab
                             __send = 0;
 
                             __isClose = false;
-                            Application.Exit();
+                            Environment.Exit(0);
                         }
                     }
                     catch (Exception err)
@@ -367,7 +367,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                 }
             }
@@ -431,7 +431,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -483,7 +483,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -612,7 +612,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -875,7 +875,7 @@ namespace TF_FD_Grab
                                 }
                                 if (__last_username == _username)
                                 {
-                                    Thread.Sleep(100);
+                                    Thread.Sleep(Properties.Settings.Default.______thread_mill);
                                     ___InsertData(_username, _name, _date_deposit, _vip, _amount, _gateway, _status, _bill_no, _contact_no, _process_datetime, _method, _pg_bill_no);
                                 }
                                 else
@@ -956,7 +956,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -1015,7 +1015,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -1061,7 +1061,7 @@ namespace TF_FD_Grab
                     MessageBox.Show(err.ToString());
 
                     __isClose = false;
-                    Application.Exit();
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1102,7 +1102,7 @@ namespace TF_FD_Grab
                     MessageBox.Show(err.ToString());
 
                     __isClose = false;
-                    Application.Exit();
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1180,7 +1180,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -1258,7 +1258,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -1337,7 +1337,7 @@ namespace TF_FD_Grab
                     __send = 0;
 
                     __isClose = false;
-                    Application.Exit();
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1509,7 +1509,7 @@ namespace TF_FD_Grab
                     __send = 0;
 
                     __isClose = false;
-                    Application.Exit();
+                    Environment.Exit(0);
                 }
                 else
                 {
@@ -1596,7 +1596,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -1645,7 +1645,7 @@ namespace TF_FD_Grab
                         __send = 0;
 
                         __isClose = false;
-                        Application.Exit();
+                        Environment.Exit(0);
                     }
                     else
                     {
