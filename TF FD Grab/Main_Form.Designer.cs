@@ -265,12 +265,12 @@
             // 
             // timer_still_loading
             // 
-            this.timer_still_loading.Interval = 3000;
+            this.timer_still_loading.Interval = 5000;
             this.timer_still_loading.Tick += new System.EventHandler(this.timer_still_loading_Tick);
             // 
             // timer_still_loading_1
             // 
-            this.timer_still_loading_1.Interval = 3000;
+            this.timer_still_loading_1.Interval = 5000;
             this.timer_still_loading_1.Tick += new System.EventHandler(this.timer_still_loading_1_Tick);
             // 
             // timer_auto_reject

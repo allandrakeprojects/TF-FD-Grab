@@ -239,18 +239,21 @@ namespace TF_FD_Grab
         {
             if (!__isClose)
             {
-                DialogResult dr = MessageBox.Show("Exit the program?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (dr == DialogResult.No)
-                {
-                    e.Cancel = true;
-                }
-                else
-                {
-                    Environment.Exit(0);
-                }
+                e.Cancel = true;
+                //DialogResult dr = MessageBox.Show("Exit the program?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                //if (dr == DialogResult.No)
+                //{
+                //    e.Cancel = true;
+                //}
+                //else
+                //{
+                //    Environment.Exit(0);
+                //}
             }
-
-            Environment.Exit(0);
+            else
+            {
+                Environment.Exit(0);
+            }
         }
 
         // Form Load
@@ -351,7 +354,7 @@ namespace TF_FD_Grab
                         if (webBrowser.Url.ToString().ToLower().Contains("error"))
                         {
                             string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
-                            SendITSupport("There's a problem to the server, please re-open the application.");
+                            SendITSupport("BO Error.");
                             SendMyBot("BO Error");
                             __send = 0;
 
@@ -1375,7 +1378,6 @@ namespace TF_FD_Grab
                     TimeSpan diff = time_now - start;
                     if (diff.Minutes >= 15)
                     {
-
                         __isNotAutoReject = true;
                         __bill_no = time__bill_no_get[4];
                         Properties.Settings.Default.______pending_bill_no = Properties.Settings.Default.______pending_bill_no.Replace(__bill_no + "*|*", "");
@@ -1403,12 +1405,20 @@ namespace TF_FD_Grab
         {
             timer_still_loading.Stop();
             bool _firstProcess = true;
+            int detect = 0;
             while (_firstProcess)
             {
                 string loading = webBrowser.Document.GetElementById("data1_processing").OuterHtml.ToString();
                 if (loading.Contains("visible"))
                 {
                     _firstProcess = true;
+                    detect++;
+                    if (detect == 5)
+                    {
+                        webBrowser.Navigate("http://cs.tianfa86.org/playerFund/dptVerify");
+                        __autoReject = true;
+
+                    }
                 }
                 else
                 {
@@ -1416,17 +1426,20 @@ namespace TF_FD_Grab
                 }
             }
 
-            HtmlElementCollection links = webBrowser.Document.GetElementsByTagName("a");
-            foreach (HtmlElement link in links)
+            if (!_firstProcess)
             {
-                if (link.InnerText == "verify" || link.InnerText == "审核")
+                HtmlElementCollection links = webBrowser.Document.GetElementsByTagName("a");
+                foreach (HtmlElement link in links)
                 {
-                    link.InvokeMember("Click");
-                    break;
+                    if (link.InnerText == "verify" || link.InnerText == "审核")
+                    {
+                        link.InvokeMember("Click");
+                        break;
+                    }
                 }
-            }
 
-            timer_still_loading_1.Start();
+                timer_still_loading_1.Start();
+            }
         }
 
         private void timer_still_loading_1_Tick(object sender, EventArgs e)
