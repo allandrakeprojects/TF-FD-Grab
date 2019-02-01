@@ -235,25 +235,37 @@ namespace TF_FD_Grab
         }
 
         // Form Closing
+        DialogResult _dr;
         private void Main_Form_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (!__isClose)
             {
-                e.Cancel = true;
-                //DialogResult dr = MessageBox.Show("Exit the program?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                //if (dr == DialogResult.No)
-                //{
-                //    e.Cancel = true;
-                //}
-                //else
-                //{
-                //    Environment.Exit(0);
-                //}
+                timer_dialog.Start();
+                _dr = MessageBox.Show("Exit the program?", "TF FD Grab Exit", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+
+                if (_dr == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    e.Cancel = true;
+                }
             }
             else
             {
                 Environment.Exit(0);
             }
+        }
+
+        [DllImport("user32.dll")] public static extern IntPtr FindWindow(String sClassName, String sAppName);
+        [DllImport("user32.dll")] public static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+
+        private void timer_dialog_Tick(object sender, EventArgs e)
+        {
+            IntPtr w = FindWindow(null, "TF FD Grab Exit");
+            if (w != null) SendMessage(w, 0x0112, 0xF060, 0);
+            timer_dialog.Stop();
         }
 
         // Form Load
@@ -1567,6 +1579,27 @@ namespace TF_FD_Grab
 
         private void timer_detect_running_Tick(object sender, EventArgs e)
         {
+            try
+            {
+                string datetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                using (StreamWriter file = new StreamWriter(Path.GetTempPath() + @"\fdgrab_tf_detect.txt", false, Encoding.UTF8))
+                {
+                    try
+                    {
+                        file.Write(datetime);
+                        file.Close();
+                    }
+                    catch (Exception err)
+                    {
+                        // leave blank
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                // leave blank
+            }
+
             ___DetectRunning();
         }
 

@@ -53,6 +53,7 @@
             this.timer_auto_reject = new System.Windows.Forms.Timer(this.components);
             this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
             this.timer_detect_running = new System.Windows.Forms.Timer(this.components);
+            this.timer_dialog = new System.Windows.Forms.Timer(this.components);
             this.panel_header.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_header)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_minimize)).BeginInit();
@@ -290,6 +291,11 @@
             this.timer_detect_running.Interval = 60000;
             this.timer_detect_running.Tick += new System.EventHandler(this.timer_detect_running_Tick);
             // 
+            // timer_dialog
+            // 
+            this.timer_dialog.Interval = 10000;
+            this.timer_dialog.Tick += new System.EventHandler(this.timer_dialog_Tick);
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -352,5 +358,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer timer_flush_memory;
         private System.Windows.Forms.Timer timer_detect_running;
+        private System.Windows.Forms.Timer timer_dialog;
     }
 }
