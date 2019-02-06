@@ -1396,6 +1396,8 @@ namespace TF_FD_Grab
                     }
                 }
             }
+
+            timer_auto_reject.Start();
         }
 
         private JObject __jo_auto_reject_pending;
@@ -1664,6 +1666,12 @@ namespace TF_FD_Grab
 
             byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/task/deposit", "POST", reqparm);
             string responsebody = Encoding.UTF8.GetString(result);
+        }
+
+        private async void timer_auto_reject_TickAsync(object sender, EventArgs e)
+        {
+            timer_auto_reject.Stop();
+            await ___GetListDepositVerify();
         }
     }
 }
