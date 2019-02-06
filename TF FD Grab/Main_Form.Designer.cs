@@ -48,9 +48,6 @@
             this.panel_landing = new System.Windows.Forms.Panel();
             this.pictureBox_landing = new System.Windows.Forms.PictureBox();
             this.timer = new System.Windows.Forms.Timer(this.components);
-            this.timer_still_loading = new System.Windows.Forms.Timer(this.components);
-            this.timer_still_loading_1 = new System.Windows.Forms.Timer(this.components);
-            this.timer_auto_reject = new System.Windows.Forms.Timer(this.components);
             this.timer_flush_memory = new System.Windows.Forms.Timer(this.components);
             this.timer_detect_running = new System.Windows.Forms.Timer(this.components);
             this.timer_dialog = new System.Windows.Forms.Timer(this.components);
@@ -264,21 +261,6 @@
             this.timer.Interval = 15000;
             this.timer.Tick += new System.EventHandler(this.timer_TickAsync);
             // 
-            // timer_still_loading
-            // 
-            this.timer_still_loading.Interval = 5000;
-            this.timer_still_loading.Tick += new System.EventHandler(this.timer_still_loading_Tick);
-            // 
-            // timer_still_loading_1
-            // 
-            this.timer_still_loading_1.Interval = 5000;
-            this.timer_still_loading_1.Tick += new System.EventHandler(this.timer_still_loading_1_Tick);
-            // 
-            // timer_auto_reject
-            // 
-            this.timer_auto_reject.Interval = 20000;
-            this.timer_auto_reject.Tick += new System.EventHandler(this.timer_auto_reject_TickAsync);
-            // 
             // timer_flush_memory
             // 
             this.timer_flush_memory.Enabled = true;
@@ -352,9 +334,6 @@
         private System.Windows.Forms.Panel panel_landing;
         private System.Windows.Forms.PictureBox pictureBox_landing;
         private System.Windows.Forms.Timer timer;
-        private System.Windows.Forms.Timer timer_still_loading;
-        private System.Windows.Forms.Timer timer_still_loading_1;
-        private System.Windows.Forms.Timer timer_auto_reject;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer timer_flush_memory;
         private System.Windows.Forms.Timer timer_detect_running;

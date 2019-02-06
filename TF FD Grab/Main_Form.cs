@@ -25,7 +25,6 @@ namespace TF_FD_Grab
         private bool __isLogin = false;
         private bool __isClose;
         private bool __isBreak = false;
-        private bool __autoReject = false;
         private int __secho;
         private int __display_length = 5000;
         private int __total_page;
@@ -241,7 +240,7 @@ namespace TF_FD_Grab
             if (!__isClose)
             {
                 timer_dialog.Start();
-                _dr = MessageBox.Show("Exit the program?", "TF FD Grab Exit", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                _dr = MessageBox.Show("Exit the program?", "TF FD Grab", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (_dr == DialogResult.No)
                 {
@@ -249,7 +248,7 @@ namespace TF_FD_Grab
                 }
                 else
                 {
-                    e.Cancel = true;
+                Environment.Exit(0);
                 }
             }
             else
@@ -343,23 +342,6 @@ namespace TF_FD_Grab
                                 ___PlayerLastBillNo();
                                 await ___GetListDepositVerify();
                                 await ___GetPlayerListsRequest();
-                            }
-
-                            if (__autoReject)
-                            {
-                                __autoReject = false;
-                                foreach (HtmlElement he in webBrowser.Document.All.GetElementsByName("dno"))
-                                {
-                                    he.SetAttribute("value", __bill_no);
-                                }
-
-                                HtmlElement submit = webBrowser.Document.GetElementById("s_submit");
-                                submit.InvokeMember("Click");
-
-                                HtmlElement next_tab = webBrowser.Document.GetElementById("sf");
-                                next_tab.InvokeMember("Click");
-
-                                timer_still_loading.Start();
                             }
                         }
 
@@ -1339,7 +1321,7 @@ namespace TF_FD_Grab
                 __jo_auto_reject = JObject.Parse(deserializeObject.ToString());
                 JToken count = __jo_auto_reject.SelectToken("$.aaData");
                 __result_count_json_auto_reject = count.Count();
-                ___PlayerListAsync_AutoRejectAsync();
+                await ___PlayerListAsync_AutoRejectAsync();
                 __send = 0;
             }
             catch (Exception err)
@@ -1364,9 +1346,8 @@ namespace TF_FD_Grab
         private JObject __jo_auto_reject;
         private int __result_count_json_auto_reject;
         private bool __isBreak_auto_reject = false;
-        private bool __isNotAutoReject = false;
 
-        private void ___PlayerListAsync_AutoRejectAsync()
+        private async Task ___PlayerListAsync_AutoRejectAsync()
         {
             List<string> player_info = new List<string>();
 
@@ -1390,90 +1371,30 @@ namespace TF_FD_Grab
                     TimeSpan diff = time_now - start;
                     if (diff.Minutes >= 15)
                     {
-                        __isNotAutoReject = true;
                         __bill_no = time__bill_no_get[4];
-                        Properties.Settings.Default.______pending_bill_no = Properties.Settings.Default.______pending_bill_no.Replace(__bill_no + "*|*", "");
-                        label1.Text = Properties.Settings.Default.______pending_bill_no;
-                        Properties.Settings.Default.Save();
-                        ___ProcessDepositVerify();
-                        __isBreak_auto_reject = true;
+
+                        try
+                        {
+                            Properties.Settings.Default.______pending_bill_no = Properties.Settings.Default.______pending_bill_no.Replace(__bill_no + "*|*", "");
+                            label1.Text = Properties.Settings.Default.______pending_bill_no;
+                            Properties.Settings.Default.Save();
+                            
+                            await ___Task_AutoRejectAsync();
+                            await ___AutoRejectAsync();
+                        }
+                        catch (Exception err)
+                        {
+                            Properties.Settings.Default.______pending_bill_no += __bill_no + "*|*";
+
+                            SendITSupport("There's a problem to the server, please re-open the application.");
+                            SendMyBot(err.ToString());
+                            __send = 0;
+
+                            __isClose = false;
+                            Environment.Exit(0);
+                        }
                     }
                 }
-            }
-
-            if (!__isNotAutoReject)
-            {
-                timer_auto_reject.Start();
-            }
-        }
-
-        private void ___ProcessDepositVerify()
-        {
-            webBrowser.Navigate("http://cs.tianfa86.org/playerFund/dptVerify");
-            __autoReject = true;
-        }
-
-        private void timer_still_loading_Tick(object sender, EventArgs e)
-        {
-            timer_still_loading.Stop();
-            bool _firstProcess = true;
-            int detect = 0;
-            while (_firstProcess)
-            {
-                string loading = webBrowser.Document.GetElementById("data1_processing").OuterHtml.ToString();
-                if (loading.Contains("visible"))
-                {
-                    _firstProcess = true;
-                    detect++;
-                    if (detect == 5)
-                    {
-                        webBrowser.Navigate("http://cs.tianfa86.org/playerFund/dptVerify");
-                        __autoReject = true;
-
-                    }
-                }
-                else
-                {
-                    _firstProcess = false;
-                }
-            }
-
-            if (!_firstProcess)
-            {
-                HtmlElementCollection links = webBrowser.Document.GetElementsByTagName("a");
-                foreach (HtmlElement link in links)
-                {
-                    if (link.InnerText == "verify" || link.InnerText == "审核")
-                    {
-                        link.InvokeMember("Click");
-                        break;
-                    }
-                }
-
-                timer_still_loading_1.Start();
-            }
-        }
-
-        private void timer_still_loading_1_Tick(object sender, EventArgs e)
-        {
-            timer_still_loading_1.Stop();
-            webBrowser.Document.GetElementsByTagName("input").GetElementsByName("checkDpt")[1].InvokeMember("click");
-
-            HtmlElement submit = webBrowser.Document.GetElementById("btn_refuse");
-            submit.InvokeMember("Click");
-
-            __isBreak_auto_reject = false;
-            __isNotAutoReject = false;
-            timer_auto_reject.Start();
-        }
-
-        private async void timer_auto_reject_TickAsync(object sender, EventArgs e)
-        {
-            timer_auto_reject.Stop();
-
-            if (__isLogin)
-            {
-                await ___GetListDepositVerify();
             }
         }
 
@@ -1699,6 +1620,50 @@ namespace TF_FD_Grab
                     }
                 }
             }
+        }
+
+        private async Task ___AutoRejectAsync()
+        {
+            var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+            WebClient wc = new WebClient();
+
+            wc.Headers.Add("Cookie", cookie);
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729)");
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+            var reqparm = new NameValueCollection
+                {
+                    {"dno", __bill_no},
+                    {"dealremark", "客服拒绝"},
+                };
+
+            byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/kzb/fund/refuse", "POST", reqparm);
+            string responsebody = Encoding.UTF8.GetString(result);
+
+            if (!responsebody.ToLower().Contains("refuse deposit success"))
+            {
+                Properties.Settings.Default.______pending_bill_no += __bill_no + "*|*";
+            }
+        }
+
+        private async Task ___Task_AutoRejectAsync()
+        {
+            var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+            WebClient wc = new WebClient();
+
+            wc.Headers.Add("Cookie", cookie);
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729)");
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+            var reqparm = new NameValueCollection
+                {
+                    {"dno", __bill_no},
+                };
+
+            byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/task/deposit", "POST", reqparm);
+            string responsebody = Encoding.UTF8.GetString(result);
         }
     }
 }
