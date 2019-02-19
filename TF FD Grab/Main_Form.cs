@@ -1626,46 +1626,60 @@ namespace TF_FD_Grab
 
         private async Task ___AutoRejectAsync()
         {
-            var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
-            WebClient wc = new WebClient();
+            try
+            {
+                var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+                WebClient wc = new WebClient();
 
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729)");
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729)");
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            var reqparm = new NameValueCollection
+                var reqparm = new NameValueCollection
                 {
                     {"dno", __bill_no},
                     {"dealremark", "客服拒绝"},
                 };
 
-            byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/kzb/fund/refuse", "POST", reqparm);
-            string responsebody = Encoding.UTF8.GetString(result);
+                byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/kzb/fund/refuse", "POST", reqparm);
+                string responsebody = Encoding.UTF8.GetString(result);
 
-            if (!responsebody.ToLower().Contains("refuse deposit success"))
+                if (!responsebody.ToLower().Contains("refuse deposit success"))
+                {
+                    Properties.Settings.Default.______pending_bill_no += __bill_no + "*|*";
+                }
+            }
+            catch (Exception err)
             {
-                Properties.Settings.Default.______pending_bill_no += __bill_no + "*|*";
+                SendMyBot(err.ToString() + " ---- " + __bill_no);
             }
         }
 
         private async Task ___Task_AutoRejectAsync()
         {
-            var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
-            WebClient wc = new WebClient();
+            try
+            {
+                var cookie = Cookie.GetCookieInternal(webBrowser.Url, false);
+                WebClient wc = new WebClient();
 
-            wc.Headers.Add("Cookie", cookie);
-            wc.Encoding = Encoding.UTF8;
-            wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729)");
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                wc.Headers.Add("Cookie", cookie);
+                wc.Encoding = Encoding.UTF8;
+                wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729)");
+                wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-            var reqparm = new NameValueCollection
+                var reqparm = new NameValueCollection
                 {
                     {"dno", __bill_no},
                 };
 
-            byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/task/deposit", "POST", reqparm);
-            string responsebody = Encoding.UTF8.GetString(result);
+                byte[] result = await wc.UploadValuesTaskAsync("http://cs.tianfa86.org/task/deposit", "POST", reqparm);
+                string responsebody = Encoding.UTF8.GetString(result);
+            }
+            catch (Exception err)
+            {
+                SendMyBot(err.ToString() + " ---- " + __bill_no);
+            }
         }
 
         private async void timer_auto_reject_TickAsync(object sender, EventArgs e)
