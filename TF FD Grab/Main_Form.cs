@@ -405,7 +405,7 @@ namespace TF_FD_Grab
                         ["token"] = token
                     };
 
-                    var result = wb.UploadValues("http://zeus.ssimakati.com:8080/API/lastFDRecord", "POST", data);
+                    var result = wb.UploadValues("http://zeus.ssitex.com:8080/API/lastFDRecord", "POST", data);
                     string responsebody = Encoding.UTF8.GetString(result);
                     var deserializeObject = JsonConvert.DeserializeObject(responsebody);
                     JObject jo = JObject.Parse(deserializeObject.ToString());
@@ -936,7 +936,7 @@ namespace TF_FD_Grab
                         ["token"] = token
                     };
 
-                    var response = wb.UploadValues("http://zeus.ssimakati.com:8080/API/sendFD", "POST", data);
+                    var response = wb.UploadValues("http://zeus.ssitex.com:8080/API/sendFD", "POST", data);
                     string responseInString = Encoding.UTF8.GetString(response);
                 }
             }
@@ -995,7 +995,7 @@ namespace TF_FD_Grab
                         ["token"] = token
                     };
 
-                    var response = wb.UploadValues("http://zeus2.ssimakati.com:8080/API/sendFD", "POST", data);
+                    var response = wb.UploadValues("http://zeus2.ssitex.com:8080/API/sendFD", "POST", data);
                     string responseInString = Encoding.UTF8.GetString(response);
                 }
             }
@@ -1548,7 +1548,7 @@ namespace TF_FD_Grab
                         ["token"] = token
                     };
 
-                    var response = wb.UploadValues("http://zeus.ssimakati.com:8080/API/updateAppStatus", "POST", data);
+                    var response = wb.UploadValues("http://zeus.ssitex.com:8080/API/updateAppStatus", "POST", data);
                     string responseInString = Encoding.UTF8.GetString(response);
                 }
             }
@@ -1597,7 +1597,7 @@ namespace TF_FD_Grab
                         ["token"] = token
                     };
 
-                    var response = wb.UploadValues("http://zeus2.ssimakati.com:8080/API/updateAppStatus", "POST", data);
+                    var response = wb.UploadValues("http://zeus2.ssitex.com:8080/API/updateAppStatus", "POST", data);
                     string responseInString = Encoding.UTF8.GetString(response);
                 }
             }
