@@ -25,6 +25,7 @@ namespace TF_FD_Grab
         private bool __isLogin = false;
         private bool __isClose;
         private bool __isBreak = false;
+        private bool __is_send = true;
         private int __secho;
         private int __display_length = 5000;
         private int __total_page;
@@ -304,8 +305,7 @@ namespace TF_FD_Grab
                                 label_currentrecord.Visible = false;
                                 __mainFormHandler = Application.OpenForms[0];
                                 __mainFormHandler.Size = new Size(466, 468);
-
-                                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                                
                                 SendITSupport("The application have been logout, please re-login again.");
                                 SendMyBot("The application have been logout, please re-login again.");
                                 __send = 0;
@@ -347,10 +347,8 @@ namespace TF_FD_Grab
 
                         if (webBrowser.Url.ToString().ToLower().Contains("error"))
                         {
-                            string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                             SendITSupport("BO Error.");
                             SendMyBot("BO Error");
-                            __send = 0;
 
                             __isClose = false;
                             Environment.Exit(0);
@@ -358,10 +356,8 @@ namespace TF_FD_Grab
                     }
                     catch (Exception err)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
@@ -378,12 +374,32 @@ namespace TF_FD_Grab
 
         private void ___PlayerLastBillNo()
         {
-            if (Properties.Settings.Default.______last_bill_no == "")
+            try
             {
-                ___GetLastBillNo();
-            }
+                if (Properties.Settings.Default.______last_bill_no == "")
+                {
+                    ___GetLastBillNo();
+                }
 
-            label_player_last_bill_no.Text = "Last Bill No.: " + Properties.Settings.Default.______last_bill_no;
+                label_player_last_bill_no.Text = "Last Bill No.: " + Properties.Settings.Default.______last_bill_no;
+            }
+            catch (Exception err)
+            {
+                __send++;
+                if (__send == 5)
+                {
+                    SendMyBot(err.ToString());
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+
+                    __isClose = false;
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    ___WaitNSeconds(10);
+                    ___PlayerLastBillNo();
+                }
+            }
         }
 
         private void ___GetLastBillNo()
@@ -422,16 +438,15 @@ namespace TF_FD_Grab
                     __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         ___GetLastBillNo2();
                     }
                 }
@@ -474,16 +489,15 @@ namespace TF_FD_Grab
                     __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         ___GetLastBillNo();
                     }
                 }
@@ -603,16 +617,15 @@ namespace TF_FD_Grab
                     __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         await ___GetPlayerListsRequest();
                     }
                 }
@@ -947,16 +960,15 @@ namespace TF_FD_Grab
                     __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         ____InsertData2(username, name, date_deposit, vip, amount, gateway, status, bill_no, contact_no, process_datetime, method, pg_bill_no);
                     }
                 }
@@ -1006,16 +1018,15 @@ namespace TF_FD_Grab
                     __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         ___InsertData(username, name, date_deposit, vip, amount, gateway, status, bill_no, contact_no, process_datetime, method, pg_bill_no);
                     }
                 }
@@ -1055,13 +1066,15 @@ namespace TF_FD_Grab
                 __send++;
                 if (__send == 5)
                 {
-                    MessageBox.Show(err.ToString());
+                    SendITSupport("There's a problem to the server, please re-open the application.");
+                    SendMyBot(err.ToString());
 
                     __isClose = false;
                     Environment.Exit(0);
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     SendMyBot(message);
                 }
             }
@@ -1069,41 +1082,46 @@ namespace TF_FD_Grab
 
         private void SendITSupport(string message)
         {
-            try
+            if (__is_send)
             {
-                string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
-                string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
-                string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
-                string chatId = "@it_support_ssi";
-                string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
-                urlString = String.Format(urlString, apiToken, chatId, text);
-                WebRequest request = WebRequest.Create(urlString);
-                Stream rs = request.GetResponse().GetResponseStream();
-                StreamReader reader = new StreamReader(rs);
-                string line = "";
-                StringBuilder sb = new StringBuilder();
-                while (line != null)
+                try
                 {
-                    line = reader.ReadLine();
-                    if (line != null)
+                    string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
+                    string urlString = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}";
+                    string apiToken = "612187347:AAE9doWWcStpWrDrfpOod89qGSxCJ5JwQO4";
+                    string chatId = "@it_support_ssi";
+                    string text = "-----" + __brand_code + " " + __app + "-----%0A%0AIP:%20" + Properties.Settings.Default.______server_ip + "%0ALocation:%20" + Properties.Settings.Default.______server_location + "%0ADate%20and%20Time:%20[" + datetime + "]%0AMessage:%20" + message + "";
+                    urlString = String.Format(urlString, apiToken, chatId, text);
+                    WebRequest request = WebRequest.Create(urlString);
+                    Stream rs = request.GetResponse().GetResponseStream();
+                    StreamReader reader = new StreamReader(rs);
+                    string line = "";
+                    StringBuilder sb = new StringBuilder();
+                    while (line != null)
                     {
-                        sb.Append(line);
+                        line = reader.ReadLine();
+                        if (line != null)
+                        {
+                            sb.Append(line);
+                        }
                     }
                 }
-            }
-            catch (Exception err)
-            {
-                __send++;
-                if (__send == 5)
+                catch (Exception err)
                 {
-                    MessageBox.Show(err.ToString());
+                    __send++;
+                    if (__send == 5)
+                    {
+                        SendITSupport("There's a problem to the server, please re-open the application.");
+                        SendMyBot(err.ToString());
 
-                    __isClose = false;
-                    Environment.Exit(0);
-                }
-                else
-                {
-                    SendITSupport(message);
+                        __isClose = false;
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        ___WaitNSeconds(10);
+                        SendITSupport(message);
+                    }
                 }
             }
         }
@@ -1169,18 +1187,18 @@ namespace TF_FD_Grab
             {
                 if (__isLogin)
                 {
+                    __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         await ___PlayerListContactNumberAsync(id);
                     }
                 }
@@ -1247,18 +1265,18 @@ namespace TF_FD_Grab
             {
                 if (__isLogin)
                 {
+                    __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         await ___PlayerListContactNumberAsync_Pending(id);
                     }
                 }
@@ -1331,13 +1349,13 @@ namespace TF_FD_Grab
                 {
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
-                    __send = 0;
 
                     __isClose = false;
                     Environment.Exit(0);
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___GetListDepositVerify();
                 }
             }
@@ -1388,7 +1406,6 @@ namespace TF_FD_Grab
 
                             SendITSupport("There's a problem to the server, please re-open the application.");
                             SendMyBot(err.ToString());
-                            __send = 0;
 
                             __isClose = false;
                             Environment.Exit(0);
@@ -1454,13 +1471,13 @@ namespace TF_FD_Grab
                 {
                     SendITSupport("There's a problem to the server, please re-open the application.");
                     SendMyBot(err.ToString());
-                    __send = 0;
 
                     __isClose = false;
                     Environment.Exit(0);
                 }
                 else
                 {
+                    ___WaitNSeconds(10);
                     await ___GetListDepositVerify_Pending();
                 }
             }
@@ -1559,16 +1576,15 @@ namespace TF_FD_Grab
                     __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         ___DetectRunning2();
                     }
                 }
@@ -1608,16 +1624,15 @@ namespace TF_FD_Grab
                     __send++;
                     if (__send == 5)
                     {
-                        string datetime = DateTime.Now.ToString("dd MMM HH:mm:ss");
                         SendITSupport("There's a problem to the server, please re-open the application.");
                         SendMyBot(err.ToString());
-                        __send = 0;
 
                         __isClose = false;
                         Environment.Exit(0);
                     }
                     else
                     {
+                        ___WaitNSeconds(10);
                         ___DetectRunning();
                     }
                 }
@@ -1686,6 +1701,30 @@ namespace TF_FD_Grab
         {
             timer_auto_reject.Stop();
             await ___GetListDepositVerify();
+        }
+
+        private void panel1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (__is_send)
+            {
+                __is_send = false;
+                MessageBox.Show("Telegram Notification is Disabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                __is_send = true;
+                MessageBox.Show("Telegram Notification is Enabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void ___WaitNSeconds(int sec)
+        {
+            if (sec < 1) return;
+            DateTime _desired = DateTime.Now.AddSeconds(sec);
+            while (DateTime.Now < _desired)
+            {
+                Application.DoEvents();
+            }
         }
     }
 }
