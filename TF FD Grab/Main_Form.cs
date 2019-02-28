@@ -294,7 +294,7 @@ namespace TF_FD_Grab
                 }
 
                 SendITSupport("There's a problem to the server, please re-open the application.");
-                SendMyBot(err.ToString() + " ----- hexademical");
+                SendMyBot(err.ToString() + " ----- hexadecimal");
 
                 __isClose = false;
                 Environment.Exit(0);
