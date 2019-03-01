@@ -49,7 +49,7 @@ namespace TF_FD_Grab.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("192.168.10.252")]
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.10.60")]
         public string ______server_ip {
             get {
                 return ((string)(this["______server_ip"]));
