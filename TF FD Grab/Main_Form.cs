@@ -25,7 +25,6 @@ namespace TF_FD_Grab
         private bool __isLogin = false;
         private bool __isClose;
         private bool __isBreak = false;
-        private bool __is_send = true;
         private int __secho;
         private int __display_length = 5000;
         private int __total_page;
@@ -320,6 +319,12 @@ namespace TF_FD_Grab
                                 SendITSupport("The application have been logout, please re-login again.");
                                 SendMyBot("The application have been logout, please re-login again.");
                                 __send = 0;
+
+                                if (!Properties.Settings.Default.______is_send_telegram)
+                                {
+                                    __isClose = false;
+                                    Environment.Exit(0);
+                                }
                             }
 
                             __isLogin = false;
@@ -350,7 +355,7 @@ namespace TF_FD_Grab
                                 pictureBox_loader.Visible = true;
                                 label_player_last_bill_no.Visible = true;
                                 webBrowser.WebBrowserShortcutsEnabled = false;
-                                ___PlayerLastBillNo();
+                                await ___PlayerLastBillNoAsync();
                                 await ___GetListDepositVerify();
                                 await ___GetPlayerListsRequest();
                             }
@@ -383,13 +388,15 @@ namespace TF_FD_Grab
             timer_landing.Stop();
         }
 
-        private void ___PlayerLastBillNo()
+        private async Task ___PlayerLastBillNoAsync()
         {
+            Properties.Settings.Default.______last_bill_no = "";
+
             try
             {
                 if (Properties.Settings.Default.______last_bill_no == "")
                 {
-                    ___GetLastBillNo();
+                    await ___GetLastBillNoAsync();
                 }
 
                 label_player_last_bill_no.Text = "Last Bill No.: " + Properties.Settings.Default.______last_bill_no;
@@ -408,12 +415,12 @@ namespace TF_FD_Grab
                 else
                 {
                     ___WaitNSeconds(10);
-                    ___PlayerLastBillNo();
+                    await ___PlayerLastBillNoAsync();
                 }
             }
         }
 
-        private void ___GetLastBillNo()
+        private async Task ___GetLastBillNoAsync()
         {
             try
             {
@@ -432,7 +439,7 @@ namespace TF_FD_Grab
                         ["token"] = token
                     };
 
-                    var result = wb.UploadValues("http://zeus.ssitex.com:8080/API/lastFDRecord", "POST", data);
+                    byte[] result = await wb.UploadValuesTaskAsync("http://192.168.10.252:8080/API/lastFDRecord", "POST", data);
                     string responsebody = Encoding.UTF8.GetString(result);
                     var deserializeObject = JsonConvert.DeserializeObject(responsebody);
                     JObject jo = JObject.Parse(deserializeObject.ToString());
@@ -458,13 +465,13 @@ namespace TF_FD_Grab
                     else
                     {
                         ___WaitNSeconds(10);
-                        ___GetLastBillNo2();
+                        await ___GetLastBillNo2Async();
                     }
                 }
             }
         }
 
-        private void ___GetLastBillNo2()
+        private async Task ___GetLastBillNo2Async()
         {
             try
             {
@@ -483,7 +490,7 @@ namespace TF_FD_Grab
                         ["token"] = token
                     };
 
-                    var result = wb.UploadValues("http://zeus2.ssitex.com:8080/API/lastFDRecord", "POST", data);
+                    var result = await wb.UploadValuesTaskAsync("http://zeus.ssitex.com:8080/API/lastFDRecord", "POST", data);
                     string responsebody = Encoding.UTF8.GetString(result);
                     var deserializeObject = JsonConvert.DeserializeObject(responsebody);
                     JObject jo = JObject.Parse(deserializeObject.ToString());
@@ -509,7 +516,7 @@ namespace TF_FD_Grab
                     else
                     {
                         ___WaitNSeconds(10);
-                        ___GetLastBillNo();
+                        await ___GetLastBillNoAsync();
                     }
                 }
             }
@@ -1119,7 +1126,7 @@ namespace TF_FD_Grab
 
         private void SendITSupport(string message)
         {
-            if (__is_send)
+            if (Properties.Settings.Default.______is_send_telegram)
             {
                 try
                 {
@@ -1770,14 +1777,18 @@ namespace TF_FD_Grab
 
         private void panel1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (__is_send)
+            label1.Visible = false;
+
+            if (Properties.Settings.Default.______is_send_telegram)
             {
-                __is_send = false;
+                Properties.Settings.Default.______is_send_telegram = false;
+                Properties.Settings.Default.Save();
                 MessageBox.Show("Telegram Notification is Disabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                __is_send = true;
+                Properties.Settings.Default.______is_send_telegram = true;
+                Properties.Settings.Default.Save();
                 MessageBox.Show("Telegram Notification is Enabled.", __brand_code + " " + __app, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
