@@ -665,8 +665,7 @@ namespace TF_FD_Grab
                 {
                     Application.DoEvents();
                     JToken bill_no = __jo.SelectToken("$.aaData[" + ii + "][0]").ToString().Substring(23);
-
-                    // asdasdasd
+                    
                     if (bill_no.ToString().Trim() != Properties.Settings.Default.______last_bill_no)
                     {
                         JToken username__id = __jo.SelectToken("$.aaData[" + ii + "][1]").ToString();
@@ -684,9 +683,19 @@ namespace TF_FD_Grab
                         JToken gateway__method = __jo.SelectToken("$.aaData[" + ii + "][11]").ToString();
                         char[] br = "<br>".ToCharArray();
                         string[] gateway__method_get = gateway__method.ToString().Split(br);
-                        string gateway = gateway__method_get[0];
-                        string method = gateway__method_get[4];
-                        string pg_bill_no = gateway__method_get[8];
+                        string gateway = "";
+                        string method = "";
+                        string pg_bill_no = "";
+                        try
+                        {
+                            gateway = gateway__method_get[0];
+                            method = gateway__method_get[4];
+                            pg_bill_no = gateway__method_get[8];
+                        }
+                        catch (Exception err)
+                        {
+                            SendMyBot(bill_no + "\n" + gateway__method + "\n\nDifferent Format.");
+                        }
                         JToken status = __jo.SelectToken("$.aaData[" + ii + "][12]");
                         JToken process_datetime = __jo.SelectToken("$.aaData[" + ii + "][13]");
                         string process_date = process_datetime.ToString().Substring(0, 10);
